@@ -1,11 +1,12 @@
 import scrapy
 import uuid
 from datetime import datetime
-
+import bs4 as bs
+import sys
 
 class Birth(scrapy.Spider):
     name = 'birth'
-    allowed_domains = ['https://www.imdb.com']
+    allowed_domains = ['www.imdb.com']
 
     start_urls = [
         'https://www.imdb.com/search/name/?birth_monthday=08-01&count=100',
@@ -20,21 +21,39 @@ class Birth(scrapy.Spider):
 
     def parse(self, response):
         self.logger.info('Index page ' + response.url)
-
         next_page = response.css("div.desc a::attr(href)").get()
-
         content_pages = response.css("div.lister-item.mode-detail h3.lister-item-header a::attr(href)").getall()
+
+        if response.url == "https://www.imdb.com/search/name/?birth_monthday=08-01&count=100&start=101":
+            self.crawler.engine.close_spider(self, "Reached 500 bios, closing crawler now.")
+
         for page in content_pages:
-            yield response.follow(page+"/bio?ref_=nm_ov_bio_sm", callback=self.parse_page1)  # TODO: Find full mini bio link: /bio?ref_=nm_ov_bio_sm
+            # self.logger.info("Follow page " + page+"/bio?ref_=nm_ov_bio_sm")
+            yield response.follow(page+"/bio?ref_=nm_ov_bio_sm", callback=self.parse_page1)
 
         if next_page is not None:
             yield response.follow(next_page, callback=self.parse)
 
         return
 
-    def parse(self, response):
+    def parse_page1(self, response):
+        scrape_count = self.crawler.stats.get_value('item_scraped_count')
         self.logger.info("Content page " + response.url)
-        bio = response.css("div.soda.odd p").get()  # TODO: remove hyperlink
+        self.logger.info(scrape_count)
+
+        url = response.url
+        bio = response.css("div.soda.odd p").get()
+
+        if bio:
+            bio = bs.BeautifulSoup(bio, features="lxml").getText().strip()
+            if bio and bio.lower() != "tbd" and bio.lower() != "tba":
+                yield {
+                    "url": url,
+                    "bio": bio,
+                }
+
+        return
+
 
     # def parse_page1(self, response):
     #     self.logger.info('Content page ' + response.url)
