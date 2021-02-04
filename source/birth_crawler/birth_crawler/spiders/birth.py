@@ -1,5 +1,7 @@
 import scrapy
 import bs4 as bs
+import os
+import sys
 
 
 class Birth(scrapy.Spider):
@@ -22,13 +24,13 @@ class Birth(scrapy.Spider):
         next_page = response.css("div.desc a.lister-page-next.next-page::attr(href)").get()
         content_pages = response.css("div.lister-item.mode-detail h3.lister-item-header a::attr(href)").getall()
 
-        for page in content_pages:
-            yield response.follow(page + "/bio?ref_=nm_ov_bio_sm", callback=self.parse_page1)
-
-        if next_page != "/search/name/?birth_monthday=08-01&count=100&start=601":
+        if next_page != "/search/name/?birth_monthday=08-01&count=100&start=301":
             yield response.follow(next_page, callback=self.parse)
         else:
             self.logger.info("Reached 500 page " + next_page)
+
+        for page in content_pages:
+            yield response.follow(page + "/bio?ref_=nm_ov_bio_sm", callback=self.parse_page1)
 
         return
 
@@ -36,6 +38,9 @@ class Birth(scrapy.Spider):
         scrape_count = self.crawler.stats.get_value('item_scraped_count')
         self.logger.info("Content page " + response.url)
         self.logger.info(scrape_count)
+
+        # if scrape_count == 499:
+        #     self.crawler.engine.close_spider(self, "Closing spider")
 
         url = response.url
         bio = response.css("div.soda.odd p").get()
@@ -47,5 +52,7 @@ class Birth(scrapy.Spider):
                     "url": url,
                     "bio": bio,
                 }
+        else:
+            self.logger.info("bio not found")
 
         return
