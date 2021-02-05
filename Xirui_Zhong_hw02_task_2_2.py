@@ -1,6 +1,7 @@
 import spacy
 import en_core_web_sm
 import csv
+import sys
 from spacy.matcher import Matcher
 
 ''' Entity tag
@@ -69,7 +70,6 @@ education_lexical = [
     # {'ORTH': {'REGEX': '([A-Z][a-z]+)', 'OP': '*'}},
     {'ORTH': {'REGEX': '([A-Z][a-z]+)'}, 'OP': '*'},
     # {'ORTH': {'REGEX': '(College|University|Institute|Law School|School|School of|Academy of|University of)'}},
-
 
     # {'IS_SPACE': True},
     # {'ORTH': {'REGEX': '([A-Z][a-z]+ )*(College|University|Institute|Law School|School|School of|Academy of|University of)( [A-Z][a-z]+)*'}},
@@ -156,9 +156,19 @@ performances_lexical = [
     # {'LIKE_NUM': True, 'OP': '?'},
 ]
 
-colleagues_lexical = [
+# TODO: sort, match longest one, remove "'s"
+# TODO: 如果一句话有多个同事怎么办？
+# TODO: 考虑前缀是'"'或后缀是'（'的情况. Sort, 如果前缀有'"'或后缀有'（'则不保留
+colleagues_lexical_1 = [
+    # {'ORTH': '"', 'OP': '?'},
     {'ORTH': {'REGEX': '([A-Z][a-z]+)'}, 'OP': '+'},
     {'ORTH': "'s"},
+    # {'ORTH': '(', 'OP': '!'}
+]
+# TODO: 去掉第一个token
+colleagues_lexical_2 = [
+    {'ORTH': 'with'},
+    {'ORTH': {'REGEX': '([A-Z][a-z]+)'}, 'OP': '+'},
 ]
 
 birthplace_syntactic = [
@@ -193,7 +203,8 @@ colleagues_syntactic = [
 # lexical_matcher.add("EDUCATION_LEXICAL", None, education_lexical)
 # lexical_matcher.add("AWARDS_LEXICAL", None, awards_lexical)
 # lexical_matcher.add("PERFORMANCE_LEXICAL", None, performances_lexical)
-lexical_matcher.add("COLLEAGUES_LEXICAL", None, colleagues_lexical)
+lexical_matcher.add("COLLEAGUES_LEXICAL", None, colleagues_lexical_1)
+lexical_matcher.add("COLLEAGUES_LEXICAL", None, colleagues_lexical_2)
 
 syntactic_matcher.add("BIRTHPLACE_SYNTACTIC", None, birthplace_syntactic)
 
@@ -225,7 +236,10 @@ syntactic_matcher.add("BIRTHPLACE_SYNTACTIC", None, birthplace_syntactic)
 
 # doc = nlp("""In 1999, he got the chance to direct his first feature film, American Beauty (1999). The movie earned 5 Academy Awards including Best Picture and Best Director for Mendes, which is a rare feat for a first-time film director.""")
 
-doc = nlp("""With his role in Tom Barman's Any Way the Wind Blows (2003), he proved he was Flanders' young actor to watch. In 2004, Schoenaerts produced and starred in the short film A Message from Outer Space (2004).""")
+# doc = nlp("""With his role in Tom Barman's Any Way the Wind Blows (2003), he proved he was Flanders' young actor to watch. In 2004, Schoenaerts produced and starred in the short film A Message from Outer Space (2004).""")
+
+doc = nlp(
+    """Dom later joined Wilder once again, along with Ham Gilda Radner, in the unfunny comedy Haunted Honeymoon (1986), a lame, creaky-house spoof "The Blue's Room" that even Dom in full drag could not salvage.""")
 
 # doc = nlp("His mother is English, and worked at British Midland, and his father was Irish (from County Kerry), "
 #           "and worked on the railways for Bombardier.")
@@ -238,13 +252,20 @@ lexical_matches = lexical_matcher(doc)
 syntactic_matches = syntactic_matcher(doc)
 
 # Iterate over the matches
-for match_id, start, end in lexical_matches:
-    # Get the matched span
-    # matched_span = doc[start+1:end-1] # TODO: birthplace add this
-    matched_span = doc[start:end]
+# for match_id, start, end in lexical_matches:
+#     # Get the matched span
+#     # matched_span = doc[start+1:end-1] # TODO: birthplace add this
+#     # matched_span = doc[start:end]
+#     matched_span = spacy.util.filter_spans(doc[start:end])
+#
+#     # print(type(matched_span))
+#     print(matched_span.text)
 
-    # print(matched_span.text)
-    print(matched_span.text)
+spans = [doc[start:end] for match_id, start, end in lexical_matches]
+print(spans)
+# Only keep longest match pattern
+print(spacy.util.filter_spans(spans))
+
 
 # print("Lexical Matches:", [doc[start:end].text for match_id, start, end in lexical_matches])
 # print("Syntactic Matches:", [doc[start:end].text for match_id, start, end in syntactic_matches])
