@@ -157,7 +157,8 @@ performances_lexical = [
 ]
 
 colleagues_lexical = [
-
+    {'ORTH': {'REGEX': '([A-Z][a-z]+)'}, 'OP': '+'},
+    {'ORTH': "'s"},
 ]
 
 birthplace_syntactic = [
@@ -191,7 +192,8 @@ colleagues_syntactic = [
 # lexical_matcher.add("PARENTS_LEXICAL", None, parents_lexical)
 # lexical_matcher.add("EDUCATION_LEXICAL", None, education_lexical)
 # lexical_matcher.add("AWARDS_LEXICAL", None, awards_lexical)
-lexical_matcher.add("PERFORMANCE_LEXICAL", None, performances_lexical)
+# lexical_matcher.add("PERFORMANCE_LEXICAL", None, performances_lexical)
+lexical_matcher.add("COLLEAGUES_LEXICAL", None, colleagues_lexical)
 
 syntactic_matcher.add("BIRTHPLACE_SYNTACTIC", None, birthplace_syntactic)
 
@@ -219,9 +221,11 @@ syntactic_matcher.add("BIRTHPLACE_SYNTACTIC", None, birthplace_syntactic)
 
 # doc = nlp("""In 1992, he became artistic director of the reopened Donmar Warehouse in London, where he directed such productions as "The Glass Menagerie" and the revival of the musical "Cabaret", which earned four Tony Awards including one for Best Revival of a Musical. He also directed "The Blue Room" starring Nicole Kidman.""")
 
-doc = nlp("""He went on to make two more films that year, both of which were conveniently set in Minnesota, the acclaimed Beautiful Girls (1996) and Feeling Minnesota (1996).""")
+# doc = nlp("""He went on to make two more films that year, both of which were conveniently set in Minnesota, the acclaimed Beautiful Girls (1996) and Feeling Minnesota (1996).""")
 
 # doc = nlp("""In 1999, he got the chance to direct his first feature film, American Beauty (1999). The movie earned 5 Academy Awards including Best Picture and Best Director for Mendes, which is a rare feat for a first-time film director.""")
+
+doc = nlp("""With his role in Tom Barman's Any Way the Wind Blows (2003), he proved he was Flanders' young actor to watch. In 2004, Schoenaerts produced and starred in the short film A Message from Outer Space (2004).""")
 
 # doc = nlp("His mother is English, and worked at British Midland, and his father was Irish (from County Kerry), "
 #           "and worked on the railways for Bombardier.")
