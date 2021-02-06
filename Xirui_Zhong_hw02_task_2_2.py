@@ -2,7 +2,9 @@ import spacy
 import en_core_web_sm
 import csv
 import sys
+import json
 from spacy.matcher import Matcher
+from lexicals import lexical_extractors, lexical_regs
 
 ''' Entity tag
 geo = Geographical Entity
@@ -20,252 +22,166 @@ nat = Natural Phenomenon
 BookTitle:HarryPotter JK Rowling
 '''
 
-nlp = en_core_web_sm.load()
-lexical_matcher = Matcher(nlp.vocab)
-syntactic_matcher = Matcher(nlp.vocab)
 
-# pattern = [
-#     {"IS_DIGIT": True},
-#     {"LOWER": "fifa"},
-#     {"LOWER": "world"},
-#     {"LOWER": "cup"},BookTitle:HarryPotter JK Rowling
-#     {"IS_PUNCT": True}
-# ]
-
-# pattern = [
-#     {"LEMMA": "love", "POS": "VERB"},
-#     {"POS": "NOUN"}
-# ]
-
-# test_pattern = [
-#     # {'ORTH': {'REGEX': '(?<=/).*(?=/poo)'}},
-#     # {'ORTH': {'REGEX': '.*(/poo)'}},
-#     {'ORTH': {'REGEX': '.*(?=poo)'}}
-# ]
-
-birthplace_lexical = [
-    {'ORTH': 'in'},
-    # {'IS_STOP': False},
-    # {'ORTH': {'REGEX': '(?<=in)'}},
-    {'ORTH': {'REGEX': '[a-zA-Z]+'}},
-    {'IS_PUNCT': True},
-    {'ORTH': {'REGEX': '[a-zA-Z]+'}},
-    {'IS_PUNCT': True},
-    # {'OP': '+'},
-    # {'LOWER': 'belgium'},
-    # {'TEXT': {'REGEX': '(in) [a-zA-Z\s]+(\,)? [a-zA-Z]+(\,)?(\.)?'}},
-    # {'ORTH': {'REGEX': '[a-zA-Z\s]+(\,)? [a-zA-Z]+(\,)?(\.)?'}},
-
-]
-
-education_lexical = [
-    # {'IS_STOP': True},
-    {'ORTH': {'REGEX': '([A-Z][a-z]+)'}, 'OP': '*'},
-    # {'ORTH': {'REGEX': '([A-Z][a-z]+)', 'OP': '?'}},
-    {'ORTH': {'REGEX': '(College|University|Institute|School|Academy)'}},
-    {'ORTH': 'of', 'OP': '?'},
-    # {'OP': '*'},
-    # {'ORTH': 'Dramatic', 'OP': '?'},
-    # {'ORTH': {'REGEX': '(^[A-Z][a-z]+$)', 'OP': '?'}},
-    # {'ORTH': {'REGEX': '([A-Z][a-z]+)', 'OP': '*'}},
-    {'ORTH': {'REGEX': '([A-Z][a-z]+)'}, 'OP': '*'},
-    # {'ORTH': {'REGEX': '(College|University|Institute|Law School|School|School of|Academy of|University of)'}},
-
-    # {'IS_SPACE': True},
-    # {'ORTH': {'REGEX': '([A-Z][a-z]+ )*(College|University|Institute|Law School|School|School of|Academy of|University of)( [A-Z][a-z]+)*'}},
-    # {'ORTH': {'REGEX': '([A-Z][^\s,.]+[.]?\s[(]?)*'}},
-    # {'ORTH': {'REGEX': '(College|University|Institute|Law School|School of|Academy)[^,\d]*(?=,|\d)'}},
-    # {'OP': '+'},
-    # {'ORTH': {'REGEX': '^(Academy|academy|)$'}},
-]
-
-# parents_lexical = [
-#     {'LOWER': 'born'},
-#     {'OP': '*'},
-#     {'LOWER': 'to'},
-#     {'TEXT': {'REGEX': '\s*'}, 'OP': '*'},
-#     {'IS_PUNCT': True, 'OP': '*'},
-#     {'TEXT': {'REGEX': '\s*'}, 'OP': '+'},
-#     {'IS_PUNCT': True, 'OP': '*'},
-#     {'LOWER': 'and', 'OP': '?'},
-#     {'TEXT': {'REGEX': '\s*'}, 'OP': '*'},
-#     {'IS_PUNCT': True, 'OP': '*'},
-#     {'TEXT': {'REGEX': '\s*'}, 'OP': '+'},
-#     {'IS_PUNCT': True, 'OP': '*'},
-# ]
-
-# parents_lexical = [
-#     {'ORTH': {'REGEX': 'father|mother|parent|parents'}},
-#     # {'OP': '*'},
-#     {'ORTH': {'REGEX': '([A-Z][a-z]+)'}},
-#     {'ORTH': {'REGEX': '([A-Z][a-z]+)'}, 'OP': '?'},
-#     {'ORTH': {'REGEX': '([A-Z][a-z]+)'}, 'OP': '?'},
-#     {'IS_PUNCT': True},
-#     {'TEXT': {'REGEX': '\w*'}, 'OP': '*'},
-#
-#
-#     # {'OP': '*'},
-#     {'IS_PUNCT': True},
-#     # {'ORTH': 'and', 'OP': '?'},
-#     {'ORTH': 'and'},
-#     # {'OP': '*'},
-#     # {'ORTH': {'REGEX': '([A-Z][a-z]+)'}},
-#     # # {'ORTH': {'REGEX': '([A-Z][a-z]+)'}, 'OP': '?'},
-#     # # {'ORTH': {'REGEX': '([A-Z][a-z]+)'}, 'OP': '?'},
-#     # {'IS_PUNCT': True},
-#
-# ]
-
-# TODO: 匹配直到找到标点, shortest one
-parents_lexical = [
-    {'ORTH': {'REGEX': '[f|F]ather|[m|M]other|[p|P]arent|[p|P]arents'}},
-    # {'OP': '*'},
-    {'IS_PUNCT': True, 'OP': '?'},
-    {'IS_STOP': True, 'OP': '?'},
-    {'ORTH': {'REGEX': '([A-Z][a-z]+)'}},
-    {'OP': '*'},
-    {'ORTH': 'and'},
-
-    {'TEXT': {'REGEX': '\w*'}, 'OP': '*'},  # TODO: remove * or replace with {'IS_ALPHA': True, 'OP': '*'}, ?
-    # Last word before comma must be a capital word
-    {'ORTH': {'REGEX': '([A-Z][a-z]+)'}},
-    {'ORTH': {'REGEX': '[.,]'}},
-    # {'IS_PUNCT': True},
-]
-
-# TODO: 提取后去掉最后一个标点
-awards_lexical = [
-    # {'IS_STOP': True, 'OP': '?'},
-    {'ORTH': {'REGEX': '([A-Z][a-z]+)'}},
-    {'ORTH': {'REGEX': 'Award|Awards'}},
-    # {'OP': '*'},
-    {'IS_ALPHA': True, 'OP': '*'},
-    # {'ORTH': {'REGEX': '([A-Za-z]+)', 'OP': '*'}},
-    {'ORTH': 'for', 'OP': '?'},
-    {'ORTH': {'REGEX': '([A-Z][a-z]+)'}},
-    {'ORTH': {'REGEX': '[.,]'}},
-]
-
-# TODO: sort一下，找最长的带"的所有string，去掉标点
-# TODO: 每个string记录倒数第二个token，查看是否和下一个string倒数第二个token一样，如果不是则保留，提取后去掉最后一个标点
-performances_lexical = [
-    {'ORTH': '"', 'OP': '?'},
-    {'ORTH': {'REGEX': '([A-Z][a-z]+)'}, 'OP': '+'},
-    # {'ORTH': {'REGEX': '([A-Z][a-z]+)'}},
-    {'ORTH': {'REGEX': '["(]'}},
-    # {'LIKE_NUM': True, 'OP': '?'},
-]
-
-# TODO: sort, match longest one, remove "'s"
-# TODO: 如果一句话有多个同事怎么办？
-# TODO: 考虑前缀是'"'或后缀是'（'的情况. Sort, 如果前缀有'"'或后缀有'（'则不保留
-colleagues_lexical_1 = [
-    # {'ORTH': '"', 'OP': '?'},
-    {'ORTH': {'REGEX': '([A-Z][a-z]+)'}, 'OP': '+'},
-    {'ORTH': "'s"},
-    # {'ORTH': '(', 'OP': '!'}
-]
-# TODO: 去掉第一个token
-colleagues_lexical_2 = [
-    {'ORTH': 'with'},
-    {'ORTH': {'REGEX': '([A-Z][a-z]+)'}, 'OP': '+'},
-]
-
-birthplace_syntactic = [
-    {'ORTH': 'in'},
-    {'ENT_TYPE': 'GPE'},
-]
-
-education_syntactic = [
-
-]
-
-parents_syntactic = [
-
-]
-
-awards_syntactic = [
-
-]
-
-performances_syntactic = [
-
-]
-
-colleagues_syntactic = [
-
-]
-
-# pattern = [{'ENT_TYPE': 'GPE'}]
-
-# lexical_matcher.add("BIRTHPLACE_LEXICAL", None, birthplace_lexical)
-# lexical_matcher.add("PARENTS_LEXICAL", None, parents_lexical)
-# lexical_matcher.add("EDUCATION_LEXICAL", None, education_lexical)
-# lexical_matcher.add("AWARDS_LEXICAL", None, awards_lexical)
-# lexical_matcher.add("PERFORMANCE_LEXICAL", None, performances_lexical)
-lexical_matcher.add("COLLEAGUES_LEXICAL", None, colleagues_lexical_1)
-lexical_matcher.add("COLLEAGUES_LEXICAL", None, colleagues_lexical_2)
-
-syntactic_matcher.add("BIRTHPLACE_SYNTACTIC", None, birthplace_syntactic)
-
-# doc = nlp("He was born Dominick DeLuise on August 1, 1933, in Brooklyn, New York, to parents John Smith, a sanitation "
-#           "engineer, and her mom Vicenza (Cat) DeLuise Bob Go, both Italian immigrants. A natural class clown, it helped Dom "
-#           "fit in at school, and he started drawing belly laughs fairly young on stage. His very first school play "
-#           "had him portraying an inert copper penny! He later attended New York's High School of Performing Arts, "
-#           "but when it came to college, he decided to major in biology at Tufts University near Boston. He never got "
-#           "the idea of being a comedian out of his head, however, and the obsession eventually won out.")
-
-# doc = nlp("Matthias Schoenaerts was born on December 8, 1977 in Antwerp, Belgium. His Mother, Dominique Wiche, "
-#           "was a costume designer, translator and French teacher, and his father was actor Julien Schoenaerts.")
-
-# doc = nlp("""Samuel Alexander Mendes was born on August 1, 1965 in Reading, England, UK to parents James Peter
-# Mendes, a retired university lecturer, and Valerie Helene Mendes, an author who writes children's books. Their
-# marriage didn't last long, James divorced Sam's mother in 1970 when Sam was just 5-years-old. Sam was educated at
-# Cambridge University and joined the Chichester Festival Theatre following his graduation in 1987. Afterwards,
-# he directed Judi Dench in "The Cherry Orchard", for which he won a Critics Circle Award for Best Newcomer. He then
-# joined the Royal Shakespeare Company, where he directed such productions as "Troilus and Cressida" with Ralph Fiennes
-# and "Richard III". In 1992, he became artistic director of the reopened Donmar Warehouse in London, where he directed
-# such productions as "The Glass Menagerie" and the revival of the musical "Cabaret", which earned four Tony Awards
-# including one for Best Revival of a Musical. He also directed "The Blue Room" starring Nicole Kidman. In 1999,
-# he got the chance to direct his first feature film, American Beauty (1999). The movie earned 5 Academy Awards
-# including Best Picture and Best Director for Mendes, which is a rare feat for a first-time film director.""")
-
-# doc = nlp("""In 1992, he became artistic director of the reopened Donmar Warehouse in London, where he directed such productions as "The Glass Menagerie" and the revival of the musical "Cabaret", which earned four Tony Awards including one for Best Revival of a Musical. He also directed "The Blue Room" starring Nicole Kidman.""")
-
-# doc = nlp("""He went on to make two more films that year, both of which were conveniently set in Minnesota, the acclaimed Beautiful Girls (1996) and Feeling Minnesota (1996).""")
-
-# doc = nlp("""In 1999, he got the chance to direct his first feature film, American Beauty (1999). The movie earned 5 Academy Awards including Best Picture and Best Director for Mendes, which is a rare feat for a first-time film director.""")
-
-# doc = nlp("""With his role in Tom Barman's Any Way the Wind Blows (2003), he proved he was Flanders' young actor to watch. In 2004, Schoenaerts produced and starred in the short film A Message from Outer Space (2004).""")
-
-doc = nlp(
-    """Dom later joined Wilder once again, along with Ham Gilda Radner, in the unfunny comedy Haunted Honeymoon (1986), a lame, creaky-house spoof "The Blue's Room" that even Dom in full drag could not salvage.""")
-
-# doc = nlp("His mother is English, and worked at British Midland, and his father was Irish (from County Kerry), "
-#           "and worked on the railways for Bombardier.")
-
-# doc = nlp("John Carroll Lynch was born August 1, 1963 in Boulder, Colorado, and was raised in Denver. He attended "
-#           "Academy of Dramatic Show and Saint Benedict Catholic School last year.")
-# Find all matches
-# doc = nlp("/foo/boo/poo")
-lexical_matches = lexical_matcher(doc)
-syntactic_matches = syntactic_matcher(doc)
-
-# Iterate over the matches
-# for match_id, start, end in lexical_matches:
-#     # Get the matched span
-#     # matched_span = doc[start+1:end-1] # TODO: birthplace add this
-#     # matched_span = doc[start:end]
-#     matched_span = spacy.util.filter_spans(doc[start:end])
-#
-#     # print(type(matched_span))
-#     print(matched_span.text)
-
-spans = [doc[start:end] for match_id, start, end in lexical_matches]
-print(spans)
-# Only keep longest match pattern
-print(spacy.util.filter_spans(spans))
+def extractor_names():
+    names = [
+        "birthplace",
+        "education",
+        "parents",
+        "awards",
+        "performances",
+        "colleagues",
+    ]
+    return names
 
 
-# print("Lexical Matches:", [doc[start:end].text for match_id, start, end in lexical_matches])
-# print("Syntactic Matches:", [doc[start:end].text for match_id, start, end in syntactic_matches])
+def csv_extractor(in_csv):
+    csv_rows = []
+    with open(in_csv) as csv_file:
+        csv_reader = csv.reader(csv_file, delimiter=",")
+        for row in csv_reader:
+            csv_rows.append((row[0], row[1]))
+
+    return csv_rows
+
+
+def json_exporter(out_dicts, out_jl):
+    with open(out_jl, "w") as f:
+        for out_dict in out_dicts:
+            json.dump(out_dict, f)
+            f.write('\n')  # TODO: remove last blank row
+    # f.truncate()
+    f.close()
+
+
+def main(argv):
+    in_csv = argv[0]
+    out_jl = argv[1]
+    mode = argv[2]  # 0 or 1
+
+    nlp = en_core_web_sm.load()
+    lexical_matcher = Matcher(nlp.vocab)
+    syntactic_matcher = Matcher(nlp.vocab)
+
+    names = extractor_names()
+    csv_rows = csv_extractor(in_csv)
+    out_put = []
+
+    for (idx, (act, bio)) in enumerate(csv_rows):  # Find result in each bio
+        # print(f'[{idx:2d}] >', act)
+        out_dict = {"url": act}
+        biog = bio
+        doc = nlp(biog)
+
+        # birthplace = None  # init result
+        found_birthplace = False
+        for idx, sent in enumerate(doc.sents):  # Split a bio to sentences
+            # print(f'[{idx:2d}] >', sent)
+            my_sent = str(sent)
+            my_doc = nlp(my_sent)
+
+            # for w in my_doc:
+            #     print(f'{w.text:15s} [{w.tag_:5s} | {w.pos_:6s} | {spacy.explain(w.tag_)}]')
+            # for w in doc:
+            #     print(f'{w.text:15s} [{w.dep_}]')
+
+            extractors = lexical_extractors()  # Get all extractors info
+            regs = lexical_regs()
+            for i in range(4):  # TODO: Change it back to 6
+                extractor = extractors[i]
+                regex = regs[i]
+
+                if type(extractor) == tuple:  # When an extractor has more than one pattern
+                    for j in range(len(extractor)):
+                        lexical_matcher.add("LEXICAL_" + str(j), None, extractor[j])
+                else:
+                    lexical_matcher.add("LEXICAL", None, extractor)
+
+                # lexical_matches = lexical_matcher(my_doc)
+                spans = [my_doc[start:end] for match_id, start, end in lexical_matcher(my_doc)]
+                spans = spacy.util.filter_spans(spans)
+                # print(spans)
+
+                if i == 0 and not found_birthplace:  # When extractor is birthplace
+                    if spans:
+                        match = spans[0].text
+                        match = regex.findall(match)[0]
+                        out_dict[names[i]] = match
+                        found_birthplace = True
+                        # break
+                else:
+                    if i == 2 and spans:
+                        print("this is 2")
+                    if spans:  # If a sentence is no empty, then it must contains results
+                        matches = []
+                        for span in spans:  # 一个句子中所有match的结果
+                            tmp = span.text
+                            match = regex.findall(tmp)  # TODO: Check correctness, extract mother and father?
+                            for m in match:
+                                matches.append(m)
+                        out_dict.setdefault(names[i], []).extend(matches)
+
+                # Remove current extractor
+                if type(extractor) == tuple:
+                    for j in range(len(extractor)):
+                        lexical_matcher.remove("LEXICAL_" + str(j))
+                else:
+                    lexical_matcher.remove("LEXICAL")
+
+        # Check if all keys exist
+        for name in names:
+            if name not in out_dict:
+                if name == "birthplace":
+                    out_dict[name] = ""
+                else:
+                    out_dict[name] = []
+
+        # Add one bio result to output list
+        out_put.append(out_dict)
+        print(out_put)
+
+        # birthplace = spans[0].text
+        # regex = regs[i]
+        # birthplace = regex.findall(birthplace)[0]
+        # break
+
+        # out_dict["birthplace"] = birthplace
+
+        # try:
+        #     # birthplace = next(s for s in spans if s)[0]
+        #     if spans:
+        #         birthplace = spans[0].text
+        #         regex = re.compile(r'(?<= in ).*?(?=\,$)')  # 特殊匹配
+        #         birthplace = regex.findall(birthplace)[0]
+        # except IndexError:
+        #     print("Cannot find any birthplace")
+        #     # birthplace = None
+        # except Exception as e:
+        #     # print("Unknown error when extracting birthplace")
+        #     logging.exception(e)
+        #     # birthplace = None
+        # finally:
+        #     # out_dict["birthplace"] =
+        #     print(birthplace)
+        #
+        #     lexical_matcher.remove("BIRTHPLACE_LEXICAL")
+
+    # lexical_matcher.add("PARENTS_LEXICAL", None, parents_lexical)
+    # lexical_matcher.add("EDUCATION_LEXICAL", None, education_lexical)
+    # lexical_matcher.add("AWARDS_LEXICAL", None, awards_lexical)
+    # lexical_matcher.add("PERFORMANCE_LEXICAL", None, performances_lexical)
+    # lexical_matcher.add("COLLEAGUES_LEXICAL", None, colleagues_lexical_1)
+    # lexical_matcher.add("COLLEAGUES_LEXICAL", None, colleagues_lexical_2)
+
+    # doc = nlp("/foo/boo/poo")
+    # lexical_matches = lexical_matcher(doc)
+    # syntactic_matches = syntactic_matcher(doc)
+
+    # spans = [doc[start:end] for match_id, start, end in lexical_matches]
+    # print(spans)
+    # # Only keep longest match pattern
+    # print(spacy.util.filter_spans(spans))
+
+
+if __name__ == "__main__":
+    main(sys.argv[1:])
