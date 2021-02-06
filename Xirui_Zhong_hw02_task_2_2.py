@@ -3,6 +3,7 @@ import en_core_web_sm
 import csv
 import sys
 import json
+import re
 from spacy.matcher import Matcher
 from lexicals import lexical_extractors, lexical_regs
 
@@ -45,10 +46,10 @@ def csv_extractor(in_csv):
     return csv_rows
 
 
-def json_exporter(out_dicts, out_jl):
+def json_exporter(out_puts, out_jl):
     with open(out_jl, "w") as f:
-        for out_dict in out_dicts:
-            json.dump(out_dict, f)
+        for out_put in out_puts:
+            json.dump(out_put, f)
             f.write('\n')  # TODO: remove last blank row
     # f.truncate()
     f.close()
@@ -65,7 +66,7 @@ def main(argv):
 
     names = extractor_names()
     csv_rows = csv_extractor(in_csv)
-    out_put = []
+    out_puts = []
 
     for (idx, (act, bio)) in enumerate(csv_rows):  # Find result in each bio
         # print(f'[{idx:2d}] >', act)
@@ -87,7 +88,7 @@ def main(argv):
 
             extractors = lexical_extractors()  # Get all extractors info
             regs = lexical_regs()
-            for i in range(4):  # TODO: Change it back to 6
+            for i in range(6):
                 extractor = extractors[i]
                 regex = regs[i]
 
@@ -102,24 +103,39 @@ def main(argv):
                 spans = spacy.util.filter_spans(spans)
                 # print(spans)
 
-                if i == 0 and not found_birthplace:  # When extractor is birthplace
-                    if spans:
+                if i == 0:  # When extractor is birthplace
+                    if spans and not found_birthplace:
                         match = spans[0].text
-                        match = regex.findall(match)[0]
+                        match = regex.findall(match)
+                        if match:
+                            match = match[0]
+                        else:
+                            match = ""
                         out_dict[names[i]] = match
                         found_birthplace = True
                         # break
                 else:
-                    if i == 2 and spans:
-                        print("this is 2")
+                    # if i == 2 and spans:
+                        # print('sent is ' + my_sent)
                     if spans:  # If a sentence is no empty, then it must contains results
                         matches = []
                         for span in spans:  # 一个句子中所有match的结果
                             tmp = span.text
                             match = regex.findall(tmp)  # TODO: Check correctness, extract mother and father?
                             for m in match:
-                                matches.append(m)
-                        out_dict.setdefault(names[i], []).extend(matches)
+                                if not m:
+                                    pass
+                                    # print("match is empty")
+                                else:
+                                    # matches.append(m)
+                                    m = re.sub("[^A-Za-z0-9']+", ' ', m)  # TODO: 是否应该去掉所有标点？
+                                    matches.append(m.strip())
+                        # out_dict.setdefault(names[i], []).extend(matches)
+                        try:
+                            out_dict.setdefault(names[i], set()).update(matches)
+                        except AttributeError:
+                            print(type(matches))
+                            out_dict[names[i]] = set()
 
                 # Remove current extractor
                 if type(extractor) == tuple:
@@ -128,59 +144,31 @@ def main(argv):
                 else:
                     lexical_matcher.remove("LEXICAL")
 
-        # Check if all keys exist
+        # Check if all keys exist, remove duplicates
         for name in names:
             if name not in out_dict:
                 if name == "birthplace":
                     out_dict[name] = ""
                 else:
                     out_dict[name] = []
+            elif name != "birthplace":
+                out_dict[name] = list(out_dict[name])
+            else:
+                # print(out_dict[name])
+                pass
 
         # Add one bio result to output list
-        out_put.append(out_dict)
-        print(out_put)
-
-        # birthplace = spans[0].text
-        # regex = regs[i]
-        # birthplace = regex.findall(birthplace)[0]
-        # break
-
-        # out_dict["birthplace"] = birthplace
-
+        out_puts.append(out_dict)
         # try:
-        #     # birthplace = next(s for s in spans if s)[0]
-        #     if spans:
-        #         birthplace = spans[0].text
-        #         regex = re.compile(r'(?<= in ).*?(?=\,$)')  # 特殊匹配
-        #         birthplace = regex.findall(birthplace)[0]
-        # except IndexError:
-        #     print("Cannot find any birthplace")
-        #     # birthplace = None
-        # except Exception as e:
-        #     # print("Unknown error when extracting birthplace")
-        #     logging.exception(e)
-        #     # birthplace = None
-        # finally:
-        #     # out_dict["birthplace"] =
-        #     print(birthplace)
-        #
-        #     lexical_matcher.remove("BIRTHPLACE_LEXICAL")
+        #     json.dumps(out_dict)
+        #     out_puts.append(out_dict)
+        # except TypeError:
+        #     print("Json dumps failed")
+        #     print(out_dict)
 
-    # lexical_matcher.add("PARENTS_LEXICAL", None, parents_lexical)
-    # lexical_matcher.add("EDUCATION_LEXICAL", None, education_lexical)
-    # lexical_matcher.add("AWARDS_LEXICAL", None, awards_lexical)
-    # lexical_matcher.add("PERFORMANCE_LEXICAL", None, performances_lexical)
-    # lexical_matcher.add("COLLEAGUES_LEXICAL", None, colleagues_lexical_1)
-    # lexical_matcher.add("COLLEAGUES_LEXICAL", None, colleagues_lexical_2)
-
-    # doc = nlp("/foo/boo/poo")
-    # lexical_matches = lexical_matcher(doc)
-    # syntactic_matches = syntactic_matcher(doc)
-
-    # spans = [doc[start:end] for match_id, start, end in lexical_matches]
-    # print(spans)
-    # # Only keep longest match pattern
-    # print(spacy.util.filter_spans(spans))
+    # Write output to file
+    json_exporter(out_puts, out_jl)
+    print('Write success')
 
 
 if __name__ == "__main__":
