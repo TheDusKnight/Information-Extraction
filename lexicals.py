@@ -129,8 +129,8 @@ def lexical_regs():
     reg_education_lexical = re.compile(r'.*')
     # reg_parents_lexical = re.compile(r'([A-Z][a-z]+)( \(?[A-Z][a-z]+\)?)*(?=[,.]| [a-z])')
     # reg_parents_lexical = re.compile(r'([A-Z][a-z]+ )+')
-    reg_parents_lexical = re.compile(r'.*')
-    # reg_parents_lexical = re.compile(r'([A-Z][()A-Za-z ]+)(?=[,.])')  # TODO: improve
+    # reg_parents_lexical = re.compile(r'.*')
+    reg_parents_lexical = re.compile(r'([A-Z][()A-Za-z ]+)(?=[,.])')  # TODO: improve
     reg_awards_lexical = re.compile(r'.*')
     reg_performances_lexical = re.compile(r'.*')
     reg_colleagues_lexical = re.compile(r"([A-Z][()A-Za-z ]+)(?='s)")
