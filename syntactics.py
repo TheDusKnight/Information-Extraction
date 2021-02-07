@@ -79,12 +79,23 @@ def syntactic_extractors():
     ]
 
     performances_syntactic = [
+        # {'ORTH': '"', 'OP': '?'},
+        # {'ORTH': {'REGEX': '([A-Z][a-z]+)'}, 'OP': '*'},
+        # {'ORTH': "'s", 'OP': '?'},
+        # {'ORTH': {'REGEX': '([A-Z][a-z]+)'}, 'OP': '+'},
+        # {'ORTH': "'s", 'OP': '?'},
+        # {'ORTH': {'REGEX': "[()'\"?]"}, 'OP': '?'},
+        # {'ORTH': '('},
+        # {'LIKE_NUM': True},
+
         {'ORTH': '"', 'OP': '?'},
+        {'ORTH': {'REGEX': '([A-Z][a-z]+)'}, 'OP': '+'},
+        # {'ORTH': "'s", 'OP': '?'},
+        {'ORTH': {'REGEX': "'s|:"}, 'OP': '?'},
+        {'IS_STOP': True, 'OP': '*'},
         {'ORTH': {'REGEX': '([A-Z][a-z]+)'}, 'OP': '*'},
         {'ORTH': "'s", 'OP': '?'},
-        {'ORTH': {'REGEX': '([A-Z][a-z]+)'}, 'OP': '+'},
-        {'ORTH': "'s", 'OP': '?'},
-        {'ORTH': {'REGEX': "[()'\"?]"}, 'OP': '?'},
+        {'ORTH': '"', 'OP': '?'},
         {'ORTH': '('},
         {'LIKE_NUM': True},
     ]

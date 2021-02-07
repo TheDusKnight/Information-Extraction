@@ -74,9 +74,11 @@ def lexical_extractors():
 
     performances_lexical = [
         {'ORTH': '"', 'OP': '?'},
-        {'ORTH': {'REGEX': '([A-Z][a-z]+)'}, 'OP': '*'},
-        {'ORTH': "'s", 'OP': '?'},
         {'ORTH': {'REGEX': '([A-Z][a-z]+)'}, 'OP': '+'},
+        {'ORTH': {'REGEX': "'s|:"}, 'OP': '?'},
+        # {'ORTH': "'s", 'OP': '?'},
+        {'IS_STOP': True, 'OP': '*'},
+        {'ORTH': {'REGEX': '([A-Z][a-z]+)'}, 'OP': '*'},
         {'ORTH': "'s", 'OP': '?'},
         {'ORTH': '"', 'OP': '?'},
         {'ORTH': '('},

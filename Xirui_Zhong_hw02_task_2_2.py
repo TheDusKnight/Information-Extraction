@@ -92,15 +92,19 @@ def main(argv):
         if spans:
             matches = []
             for span in spans:  # 一个句子中所有match的结果
-                tmp = span.text
-                match = reg.findall(tmp)
-                for m in match:
-                    if not m:
-                        pass
-                    else:
-                        # 去掉所有标点
-                        m = re.sub("[^A-Za-z0-9']+", ' ', m)
-                        matches.append(m.strip())
+                for ent in span.ents:
+                    if ent.label_ == "PERSON":
+                        matches.append(str(ent))
+
+                # tmp = span.text
+                # match = reg.findall(tmp)
+                # for m in match:
+                #     if not m:
+                #         pass
+                #     else:
+                #         # 去掉所有标点
+                #         m = re.sub("[^A-Za-z0-9']+", ' ', m)
+                #         matches.append(m.strip())
             try:  # Use set() to remove duplicates
                 out_dict.setdefault(names[2], set()).update(matches)
             except AttributeError:

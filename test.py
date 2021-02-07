@@ -46,11 +46,12 @@ def spacy_test():
 
 def spacy_syntacitc_test():
     nlp = spacy.load("en_core_web_sm")
-    mysent = """Samuel Alexander Mendes was born on August 1, 1965 in Reading, England, UK to parents Lengend On The Moon, James Peter Mendes, a retired university lecturer Tony Award from University of Southern California, and Valerie (Helene) Mendes, an author. He later attended New York's High School of Performing Arts who writes children's books."""
+    mysent = """Samuel Alexander Mendes was born Vicenza (DeStefano) DeLuise on August 1, 1965 in Reading, England, UK to parents Lengend On The Moon, James Peter Mendes, a retired university lecturer Game of Thrones (2011) Tony Award from University of Southern California, and Valerie (Helene) Mendes, an author. He later attended New York's High School of Performing Arts who writes children's books."""
     matcher = Matcher(nlp.vocab)
     doc = nlp(mysent)
     for w in doc:
         print(f'{w.text:12s} [{w.lemma_:10s} | {w.tag_:5s} | {w.pos_:6s} | {w.dep_:9s} | {spacy.explain(w.tag_)}]')
     for ent in doc.ents:
+        # print(type(str(ent)))
         print(ent, ent.label_)
         # print(f'{ent:15s} [{ent.label_:10s}]')
