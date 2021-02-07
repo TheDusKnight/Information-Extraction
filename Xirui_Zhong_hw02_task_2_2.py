@@ -52,26 +52,23 @@ def json_exporter(out_puts, out_jl):
         for out_put in out_puts:
             json.dump(out_put, f)
             f.write('\n')  # TODO: remove last blank row
-    # f.truncate()
     f.close()
 
 
 def main(argv):
     in_csv = argv[0]
     out_jl = argv[1]
-    mode = int(argv[2])  # 0 or 1
+    mode = int(argv[2])
     print("Current mode is " + str(mode))
 
     nlp = en_core_web_sm.load()
     my_matcher = Matcher(nlp.vocab)
-    # syntactic_matcher = Matcher(nlp.vocab)
 
     names = extractor_names()
     csv_rows = csv_extractor(in_csv)
     out_puts = []
 
     for (idx, (act, bio)) in enumerate(csv_rows):  # Find result in each bio
-        # print(f'[{idx:2d}] >', act)
         out_dict = {"url": act}
         biog = bio
         doc = nlp(biog)
@@ -96,15 +93,6 @@ def main(argv):
                     if ent.label_ == "PERSON":
                         matches.append(str(ent))
 
-                # tmp = span.text
-                # match = reg.findall(tmp)
-                # for m in match:
-                #     if not m:
-                #         pass
-                #     else:
-                #         # 去掉所有标点
-                #         m = re.sub("[^A-Za-z0-9']+", ' ', m)
-                #         matches.append(m.strip())
             try:  # Use set() to remove duplicates
                 out_dict.setdefault(names[2], set()).update(matches)
             except AttributeError:
@@ -114,16 +102,9 @@ def main(argv):
         # Extractor other attributes
         found_birthplace = False
         for idx, sent in enumerate(doc.sents):  # Split a bio to sentences
-            # print(f'[{idx:2d}] >', sent)
             my_sent = str(sent)
             my_doc = nlp(my_sent)
 
-            # for w in my_doc:
-            #     print(f'{w.text:15s} [{w.tag_:5s} | {w.pos_:6s} | {spacy.explain(w.tag_)}]')
-            # for w in my_doc:
-            #     print(f'{w.text:15s} [{w.dep_}]')
-
-            # Get all extractors info based on mode
             if mode == 0:
                 extractors = lexical_extractors()
                 regs = lexical_regs()
@@ -142,10 +123,8 @@ def main(argv):
                 else:
                     my_matcher.add("LEXICAL", None, extractor)
 
-                # lexical_matches = my_matcher(my_doc)
                 spans = [my_doc[start:end] for match_id, start, end in my_matcher(my_doc)]
                 spans = spacy.util.filter_spans(spans)
-                # print(spans)
 
                 if i == 0:  # When extractor is birthplace
                     if spans and not found_birthplace:
@@ -159,8 +138,6 @@ def main(argv):
                         found_birthplace = True
                         # break
                 else:
-                    # if i == 2 and spans:
-                    # print('sent is ' + my_sent)
                     if spans:  # If a sentence is no empty, then it must contains results
                         matches = []
                         for span in spans:  # 一个句子中所有match的结果
@@ -171,12 +148,9 @@ def main(argv):
                             for m in match:
                                 if not m:
                                     pass
-                                    # print("match is empty")
                                 else:
-                                    # matches.append(m)
                                     m = re.sub("[^A-Za-z0-9']+", ' ', m)  # TODO: 是否应该去掉所有标点？
                                     matches.append(m.strip())
-                        # out_dict.setdefault(names[i], []).extend(matches)
                         try:  # Use set() to remove duplicates
                             out_dict.setdefault(names[i], set()).update(matches)
                         except AttributeError:
@@ -200,18 +174,11 @@ def main(argv):
             elif name != "birthplace":
                 out_dict[name] = list(out_dict[name])
             else:
-                # print(out_dict[name])
                 pass
 
         # Add each bio result to output list
         out_puts.append(out_dict)
         print(out_dict)
-        # try:
-        #     json.dumps(out_dict)
-        #     out_puts.append(out_dict)
-        # except TypeError:
-        #     print("Json dumps failed")
-        #     print(out_dict)
 
     # Write output to file
     json_exporter(out_puts, out_jl)

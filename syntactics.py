@@ -7,8 +7,6 @@ def syntactic_extractors():
     """
     # TODO: test
     birthplace_syntactic = [
-        # {'IS_ALPHA': True, 'OP': '*'},
-        # {'IS_PUNCT': True, 'OP': '?'},
         {'ORTH': 'born'},
         {'OP': '*'},
         {'ORTH': 'in'},
@@ -79,15 +77,6 @@ def syntactic_extractors():
     ]
 
     performances_syntactic = [
-        # {'ORTH': '"', 'OP': '?'},
-        # {'ORTH': {'REGEX': '([A-Z][a-z]+)'}, 'OP': '*'},
-        # {'ORTH': "'s", 'OP': '?'},
-        # {'ORTH': {'REGEX': '([A-Z][a-z]+)'}, 'OP': '+'},
-        # {'ORTH': "'s", 'OP': '?'},
-        # {'ORTH': {'REGEX': "[()'\"?]"}, 'OP': '?'},
-        # {'ORTH': '('},
-        # {'LIKE_NUM': True},
-
         {'ORTH': '"', 'OP': '?'},
         {'ORTH': {'REGEX': '([A-Z][a-z]+)'}, 'OP': '+'},
         # {'ORTH': "'s", 'OP': '?'},
@@ -103,12 +92,10 @@ def syntactic_extractors():
     colleagues_syntactic_1 = [
         {'ORTH': '"', 'OP': '!'},
         {'ENT_TYPE': 'PERSON', 'OP': '+'},
-        # {'ORTH': {'REGEX': '([A-Z][a-z]+)'}, 'OP': '+', 'IS_STOP': False},
         {'ORTH': "'s"},
     ]
     colleagues_syntactic_2 = [
         {'ORTH': 'with'},
-        # {'ORTH': {'REGEX': '([A-Z][a-z]+)'}, 'OP': '+'},
         {'ENT_TYPE': 'PERSON', 'OP': '+'},
     ]
 

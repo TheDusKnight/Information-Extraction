@@ -1,7 +1,5 @@
 import scrapy
 import bs4 as bs
-import os
-import sys
 
 
 class Birth(scrapy.Spider):
@@ -38,9 +36,6 @@ class Birth(scrapy.Spider):
         scrape_count = self.crawler.stats.get_value('item_scraped_count')
         self.logger.info("Content page " + response.url)
         self.logger.info(scrape_count)
-
-        # if scrape_count == 499:
-        #     self.crawler.engine.close_spider(self, "Closing spider")
 
         url = response.url
         bio = response.css("div.soda.odd p").get()
