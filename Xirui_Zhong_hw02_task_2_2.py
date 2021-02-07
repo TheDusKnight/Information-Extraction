@@ -6,6 +6,7 @@ import json
 import re
 from spacy.matcher import Matcher
 from lexicals import lexical_extractors, lexical_regs
+from syntactics import syntactic_extractors, syntactic_regs
 
 ''' Entity tag
 geo = Geographical Entity
@@ -58,11 +59,12 @@ def json_exporter(out_puts, out_jl):
 def main(argv):
     in_csv = argv[0]
     out_jl = argv[1]
-    mode = argv[2]  # 0 or 1
+    mode = int(argv[2])  # 0 or 1
+    print("Current mode is " + str(mode))
 
     nlp = en_core_web_sm.load()
-    lexical_matcher = Matcher(nlp.vocab)
-    syntactic_matcher = Matcher(nlp.vocab)
+    my_matcher = Matcher(nlp.vocab)
+    # syntactic_matcher = Matcher(nlp.vocab)
 
     names = extractor_names()
     csv_rows = csv_extractor(in_csv)
@@ -83,23 +85,30 @@ def main(argv):
 
             # for w in my_doc:
             #     print(f'{w.text:15s} [{w.tag_:5s} | {w.pos_:6s} | {spacy.explain(w.tag_)}]')
-            # for w in doc:
+            # for w in my_doc:
             #     print(f'{w.text:15s} [{w.dep_}]')
 
-            extractors = lexical_extractors()  # Get all extractors info
-            regs = lexical_regs()
+            # Get all extractors info based on mode
+            if mode == 0:
+                extractors = lexical_extractors()
+                regs = lexical_regs()
+            else:
+                extractors = syntactic_extractors()
+                regs = syntactic_regs()
+
+            # Extract sentence based on 6 extractors
             for i in range(6):
                 extractor = extractors[i]
                 regex = regs[i]
 
                 if type(extractor) == tuple:  # When an extractor has more than one pattern
                     for j in range(len(extractor)):
-                        lexical_matcher.add("LEXICAL_" + str(j), None, extractor[j])
+                        my_matcher.add("LEXICAL_" + str(j), None, extractor[j])
                 else:
-                    lexical_matcher.add("LEXICAL", None, extractor)
+                    my_matcher.add("LEXICAL", None, extractor)
 
-                # lexical_matches = lexical_matcher(my_doc)
-                spans = [my_doc[start:end] for match_id, start, end in lexical_matcher(my_doc)]
+                # lexical_matches = my_matcher(my_doc)
+                spans = [my_doc[start:end] for match_id, start, end in my_matcher(my_doc)]
                 spans = spacy.util.filter_spans(spans)
                 # print(spans)
 
@@ -131,7 +140,7 @@ def main(argv):
                                     m = re.sub("[^A-Za-z0-9']+", ' ', m)  # TODO: 是否应该去掉所有标点？
                                     matches.append(m.strip())
                         # out_dict.setdefault(names[i], []).extend(matches)
-                        try:
+                        try:  # Use set() to remove duplicates
                             out_dict.setdefault(names[i], set()).update(matches)
                         except AttributeError:
                             print(type(matches))
@@ -140,11 +149,11 @@ def main(argv):
                 # Remove current extractor
                 if type(extractor) == tuple:
                     for j in range(len(extractor)):
-                        lexical_matcher.remove("LEXICAL_" + str(j))
+                        my_matcher.remove("LEXICAL_" + str(j))
                 else:
-                    lexical_matcher.remove("LEXICAL")
+                    my_matcher.remove("LEXICAL")
 
-        # Check if all keys exist, remove duplicates
+        # Check if all keys exist, change set back to list
         for name in names:
             if name not in out_dict:
                 if name == "birthplace":
@@ -157,8 +166,9 @@ def main(argv):
                 # print(out_dict[name])
                 pass
 
-        # Add one bio result to output list
+        # Add each bio result to output list
         out_puts.append(out_dict)
+        print(out_dict)
         # try:
         #     json.dumps(out_dict)
         #     out_puts.append(out_dict)

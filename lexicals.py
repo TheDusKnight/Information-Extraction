@@ -6,13 +6,24 @@ def lexical_extractors():
     Patterns for lexical
     """
     birthplace_lexical = [
+        # {'ORTH': 'born'},
+        # {'OP': '*'},
+        # {'ORTH': 'in'},
+        # {'ORTH': {'REGEX': '([A-Z][a-z]+)'}, 'OP': '+'},
+        # {'IS_PUNCT': True},
+        # {'ORTH': {'REGEX': '([A-Z][a-z]+)'}, 'OP': '+'},
+        # {'IS_PUNCT': True},
+
+        # TODO: Test if better
         {'ORTH': 'born'},
         {'OP': '*'},
         {'ORTH': 'in'},
-        {'ORTH': {'REGEX': '([A-Z][a-z]+)'}, 'OP': '+'},
-        {'IS_PUNCT': True},
-        {'ORTH': {'REGEX': '([A-Z][a-z]+)'}, 'OP': '+'},
-        {'IS_PUNCT': True},
+        {'ORTH': {'REGEX': '([A-Z][A-Za-z]+)'}, 'OP': '+'},
+        {'IS_PUNCT': True, 'OP': '?'},
+        {'ORTH': {'REGEX': '([A-Z][A-Za-z]+)'}, 'OP': '*'},
+        {'IS_PUNCT': True, 'OP': '?'},
+        {'ORTH': {'REGEX': '([A-Z][A-Za-z]+)'}, 'OP': '*'},
+        {'IS_PUNCT': False, 'IS_LOWER': False},
     ]
 
     # education_lexical = [
@@ -111,11 +122,15 @@ def lexical_regs():
     """
     Regexes use to extract results from lexical extractors
     """
-    reg_birthplace_lexical = re.compile(r'(?<= in ).*?(?=\,$)')
+    # reg_birthplace_lexical = re.compile(r'(?<= in ).*?(?=,$)')
+    reg_birthplace_lexical = re.compile(r'(?<= in ).*')
+    # reg_birthplace_lexical = re.compile(r'.*')
+
     reg_education_lexical = re.compile(r'.*')
     # reg_parents_lexical = re.compile(r'([A-Z][a-z]+)( \(?[A-Z][a-z]+\)?)*(?=[,.]| [a-z])')
     # reg_parents_lexical = re.compile(r'([A-Z][a-z]+ )+')
-    reg_parents_lexical = re.compile(r'([A-Z][()A-Za-z ]+)(?=[,.])')  # TODO: improve
+    reg_parents_lexical = re.compile(r'.*')
+    # reg_parents_lexical = re.compile(r'([A-Z][()A-Za-z ]+)(?=[,.])')  # TODO: improve
     reg_awards_lexical = re.compile(r'.*')
     reg_performances_lexical = re.compile(r'.*')
     reg_colleagues_lexical = re.compile(r"([A-Z][()A-Za-z ]+)(?='s)")
