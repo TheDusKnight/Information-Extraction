@@ -11,8 +11,8 @@ def print_hi(name):
 
 if __name__ == '__main__':
     print_hi('From main function\n')
-    test.spacy_test()
-    # test.spacy_syntacitc_test()
+    # test.spacy_test()
+    test.spacy_syntacitc_test()
     # test.spacy_visual()
 
     # main(sys.argv[1:])

@@ -10,20 +10,20 @@ options = {"distance": 120}
 def spacy_test():
     nlp = spacy.load("en_core_web_sm")
     matcher = Matcher(nlp.vocab)
-    num = 2
+    num = 3
 
     extractors = syntactic_extractors()
     regex = syntactic_regs()
-    extractors = lexical_extractors()
-    regex = lexical_regs()
+    # extractors = lexical_extractors()
+    # regex = lexical_regs()
     matcher.add("test", None, extractors[num])
 
     # doc = nlp("He's parents, Doge Fake Bob and John Doe Kobe. Smith and Gogo, will go home.")
     # doc = nlp("He was born Dominick DeLuise on August 1, 1933, in Brooklyn, New York,")
     # doc = nlp("As they say, behind every clown's smile, one can find a few tears.He was born Dominick DeLuise on August 1, 1933, in Brooklyn, New York, to parents John, a sanitation engineer, and Vicenza (DeStefano) DeLuise, both Italian immigrants.")
     # doc = nlp("""In addition to his film and tel. Academy Award for Best Foreign Language Fileevision work, Kiser has acted on stage in the Broadway plays "God's Favorite" (Terry received a Tony Award nomination for his performance in this Neil Simon comedy), "Shelter", "The Castro Complex", and "Paris Is Out!". Terry won both an Obie and a Theater World Award for his exemplary acting in the dramatic play "Fortune and Men's Eyes".""")
-    # doc = nlp("Terry received a Tony Award nomination for his performance in this Neil Simon comedy), Terry won both an Obie and a Theater World Award for his exemplary acting.")
-    doc = nlp("Samuel Alexander Mendes was born on August 1, 1965 in Reading, England, UK to parents James Peter Mendes, a retired university lecturer, and Valerie (Helene) Mendes, an author who writes children's books.")
+    doc = nlp("Terry received a Tony Award nomination for his performance in this Neil Simon comedy), Terry won both an Obie and a Theater World Award for his exemplary acting.")
+    # doc = nlp("Samuel Alexander Mendes was born on August 1, 1965 in Reading, England, UK to his parents James Peter Mendes, a retired University lecturer, and Valerie (Helene) Mendes, an author who writes children's books.")
 
 
     spans = [doc[start:end] for match_id, start, end in matcher(doc)]
@@ -46,7 +46,7 @@ def spacy_test():
 
 def spacy_syntacitc_test():
     nlp = spacy.load("en_core_web_sm")
-    mysent = """Samuel Alexander Mendes was born on August 1, 1965 in Reading, England, UK to parents James Peter Mendes, a retired university lecturer from University of Southern California, and Valerie Helene Mendes, an author. He later attended New York's High School of Performing Arts who writes children's books."""
+    mysent = """Samuel Alexander Mendes was born on August 1, 1965 in Reading, England, UK to parents Lengend On The Moon, James Peter Mendes, a retired university lecturer Tony Award from University of Southern California, and Valerie (Helene) Mendes, an author. He later attended New York's High School of Performing Arts who writes children's books."""
     matcher = Matcher(nlp.vocab)
     doc = nlp(mysent)
     for w in doc:

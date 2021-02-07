@@ -76,7 +76,38 @@ def main(argv):
         biog = bio
         doc = nlp(biog)
 
-        # birthplace = None  # init result
+        # Extractor parents in whole bio
+        if mode == 0:
+            extractor = lexical_extractors()[2]
+            reg = lexical_regs()[2]
+        else:
+            extractor = syntactic_extractors()[2]
+            reg = syntactic_regs()[2]
+
+        my_matcher.add("LEXICAL", None, extractor)
+        spans = [doc[start:end] for match_id, start, end in my_matcher(doc)]
+        spans = spacy.util.filter_spans(spans)
+        my_matcher.remove(("LEXICAL"))
+
+        if spans:
+            matches = []
+            for span in spans:  # 一个句子中所有match的结果
+                tmp = span.text
+                match = reg.findall(tmp)
+                for m in match:
+                    if not m:
+                        pass
+                    else:
+                        # 去掉所有标点
+                        m = re.sub("[^A-Za-z0-9']+", ' ', m)
+                        matches.append(m.strip())
+            try:  # Use set() to remove duplicates
+                out_dict.setdefault(names[2], set()).update(matches)
+            except AttributeError:
+                print(type(matches))
+                out_dict[names[2]] = set()
+
+        # Extractor other attributes
         found_birthplace = False
         for idx, sent in enumerate(doc.sents):  # Split a bio to sentences
             # print(f'[{idx:2d}] >', sent)
@@ -97,7 +128,7 @@ def main(argv):
                 regs = syntactic_regs()
 
             # Extract sentence based on 6 extractors
-            for i in range(6):
+            for i in [0, 1, 3, 4, 5]:
                 extractor = extractors[i]
                 regex = regs[i]
 
@@ -125,11 +156,13 @@ def main(argv):
                         # break
                 else:
                     # if i == 2 and spans:
-                        # print('sent is ' + my_sent)
+                    # print('sent is ' + my_sent)
                     if spans:  # If a sentence is no empty, then it must contains results
                         matches = []
                         for span in spans:  # 一个句子中所有match的结果
                             tmp = span.text
+
+
                             match = regex.findall(tmp)  # TODO: Check correctness, extract mother and father?
                             for m in match:
                                 if not m:

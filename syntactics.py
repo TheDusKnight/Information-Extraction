@@ -34,62 +34,74 @@ def syntactic_extractors():
         {'ENT_TYPE': 'GPE', 'OP': '*'},
     ]
 
-    # parents_syntactic = [
-    #     {'POS': 'VERB', 'ORTH': 'born'},
-    #     {'OP': '*'},
-    #     {'LOWER': 'to', 'POS': 'ADP'},
-    #     {'POS': 'ADJ', 'OP': '*'},
-    #     {'POS': 'NOUN', 'OP': '*'},
-    #     {'IS_PUNCT': True, 'OP': '*'},
-    #     {'ENT_TYPE': 'PERSON', 'OP': '+'},
-    #     {'IS_PUNCT': True, 'OP': '*'},
-    #     {'LOWER': 'and', 'POS': 'CCONJ', 'OP': '?'},
-    #     {'POS': 'ADJ', 'OP': '*'},
-    #     {'POS': 'NOUN', 'OP': '*'},
-    #     {'IS_PUNCT': True, 'OP': '*'},
-    #     {'ENT_TYPE': 'PERSON', 'OP': '+'},
-    #     {'IS_PUNCT': True, 'OP': '*'},
-    # ]
+    parents_syntactic = [  # TODO: Extract person name
+        {'ORTH': {'REGEX': '[f|F]ather|[m|M]other|[p|P]arent|[p|P]arents'}},
+        {'ORTH': {'REGEX': "[,()'\"]"}, 'OP': '?'},
+        {'IS_ALPHA': True, 'OP': '*'},
+        {'ORTH': {'REGEX': "[,()'\"]"}, 'OP': '?'},
+        {'ENT_TYPE': 'PERSON', 'OP': '+'},
+        {'ORTH': {'REGEX': "[,()'\"]"}, 'OP': '?'},
+        {'ORTH': 'and', 'POS': 'CCONJ', 'OP': '?'},
+        {'ORTH': {'REGEX': "[,()'\"]"}, 'OP': '?'},
+        {'IS_ALPHA': True, 'OP': '*'},
+        {'ORTH': {'REGEX': "[,()'\"]"}, 'OP': '?'},
+        {'IS_ALPHA': True, 'OP': '*'},
+        {'ORTH': {'REGEX': "[,()'\"]"}, 'OP': '?'},
 
-    parents_syntactic = [
-        # {'ORTH': {'REGEX': '[f|F]ather|[m|M]other|[p|P]arent|[p|P]arents'}},
-        # {'OP': '*'},
-        # {'ENT_TYPE': 'PERSON', 'OP': '+'},
-        # {'ORTH': 'and', 'POS': 'CCONJ', 'OP': '?'},
-
-
-        # {'ORTH': {'REGEX': '[f|F]ather|[m|M]other|[p|P]arent|[p|P]arents'}},
-        # {'OP': '*'},
-        # {'IS_PUNCT': True, 'OP': '?'},
-        # {'IS_STOP': True, 'OP': '?'},
-        # {'ORTH': {'REGEX': '([A-Z][a-z]+)'}},
-        # {'OP': '*'},
-        # {'ORTH': 'and'},
-        # {'IS_ALPHA': True, 'OP': '*'},  # TODO: remove *?
-        # #  Last word before comma must be a capital word
-        # {'ORTH': {'REGEX': '[,(]'}, 'OP': '*'},
-        # {'ORTH': {'REGEX': '([A-Z][a-z]+)'}, 'OP': '*'},
-        # {'ORTH': ')', 'OP': '*'},
-        # {'ORTH': {'REGEX': '([A-Z][a-z]+)'}, 'OP': '+'},
-        # {'ORTH': {'REGEX': '[.,]'}},
-
-
+        {'ENT_TYPE': 'PERSON', 'OP': '+'},
+        {'ORTH': {'REGEX': "[,()'\"]"}, 'OP': '?'},
+        {'ENT_TYPE': 'PERSON', 'OP': '*'},
+        {'ORTH': {'REGEX': "[,()'\"]"}, 'OP': '?'},
+        {'ENT_TYPE': 'PERSON', 'OP': '*'},
+        {'ORTH': {'REGEX': "[,()'\"]"}, 'OP': '?'},
+        {'ENT_TYPE': 'PERSON', 'OP': '*'},
     ]
 
-    awards_syntactic = [
+    # Nothing need to change
+    awards_syntactic_1 = [
+        {'ORTH': {'REGEX': "[()'\"]"}, 'OP': '?'},
+        {'POS': 'PROPN', 'OP': '+'},
+        {'ORTH': {'REGEX': "[()'\"]"}, 'OP': '?'},
+        {'ORTH': {'REGEX': 'Award|Awards'}},
+        {'ORTH': {'REGEX': "[()'\"]"}, 'OP': '?'},
+    ]
 
-
+    awards_syntactic_2 = [
+        {'ORTH': {'REGEX': "[()'\"]"}, 'OP': '?'},
+        {'ORTH': {'REGEX': '([A-Z][a-z]+)'}, 'OP': '+'},
+        {'ORTH': {'REGEX': "[()'\"]"}, 'OP': '?'},
+        {'ORTH': {'REGEX': 'Award|Awards'}},
+        {'ORTH': {'REGEX': "[()'\"]"}, 'OP': '?'},
+        {'IS_STOP': True},
+        {'ORTH': {'REGEX': "[()'\"]"}, 'OP': '?'},
+        {'ORTH': {'REGEX': '([A-Z][a-z]+)'}, 'OP': '+'},
+        {'ORTH': {'REGEX': "[()'\"]"}, 'OP': '?'},
     ]
 
     performances_syntactic = [
-
+        {'ORTH': '"', 'OP': '?'},
+        {'ORTH': {'REGEX': '([A-Z][a-z]+)'}, 'OP': '*'},
+        {'ORTH': "'s", 'OP': '?'},
+        {'ORTH': {'REGEX': '([A-Z][a-z]+)'}, 'OP': '+'},
+        {'ORTH': "'s", 'OP': '?'},
+        {'ORTH': {'REGEX': "[()'\"?]"}, 'OP': '?'},
+        {'ORTH': '('},
+        {'LIKE_NUM': True},
     ]
 
-    colleagues_syntactic = [
-
+    colleagues_syntactic_1 = [
+        {'ORTH': '"', 'OP': '!'},
+        {'ENT_TYPE': 'PERSON', 'OP': '+'},
+        # {'ORTH': {'REGEX': '([A-Z][a-z]+)'}, 'OP': '+', 'IS_STOP': False},
+        {'ORTH': "'s"},
+    ]
+    colleagues_syntactic_2 = [
+        {'ORTH': 'with'},
+        # {'ORTH': {'REGEX': '([A-Z][a-z]+)'}, 'OP': '+'},
+        {'ENT_TYPE': 'PERSON', 'OP': '+'},
     ]
 
-    return birthplace_syntactic, (education_syntactic_1, education_syntactic_2), parents_syntactic, awards_syntactic, performances_syntactic, colleagues_syntactic
+    return birthplace_syntactic, (education_syntactic_1, education_syntactic_2), parents_syntactic, (awards_syntactic_1, awards_syntactic_2), performances_syntactic, (colleagues_syntactic_1, colleagues_syntactic_2)
 
 
 def syntactic_regs():
@@ -100,7 +112,7 @@ def syntactic_regs():
     reg_education_syntactic = re.compile(r'.*')
     reg_parents_syntactic = re.compile(r'.*')
     reg_awards_syntactic = re.compile(r'.*')
-    reg_performances_syntactic = re.compile(r'.*')
-    reg_colleagues_syntactic = re.compile(r".*")
+    reg_performances_syntactic = re.compile(r'.*(?=\d\d\d\d)')
+    reg_colleagues_syntactic = re.compile(r"([A-Z][()A-Za-z ]+)(?='s)")
 
     return reg_birthplace_syntactic, reg_education_syntactic, reg_parents_syntactic, reg_awards_syntactic, reg_performances_syntactic, reg_colleagues_syntactic
